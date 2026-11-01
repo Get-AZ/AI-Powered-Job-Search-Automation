@@ -1,0 +1,9 @@
+# Never commit credentials or private candidate data
+.env
+.env.*
+*.secret
+*private*
+*backup*
+credentials.json
+node_modules/
+__pycache__/
