@@ -1,7 +1,7 @@
 # AI-Powered Job Search & Application Draft Tracker (n8n)
 
 
-![AI-Powered Job Search Automation](project-cover.png)
+![AI-Powered Job Search Automation](AI-Powered Job Search Automation1.png)
 
 
 
