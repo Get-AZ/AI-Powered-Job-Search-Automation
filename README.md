@@ -1,5 +1,8 @@
 # AI-Powered Job Search & Application Draft Tracker (n8n)
 
+![AI-Powered Job Search Automation](assets/project-cover.png)
+
+
 An n8n portfolio workflow for discovering remote jobs, estimating CV-to-job fit using Google Gemini, generating and reviewing **draft** cover letters, and recording new opportunities in Google Sheets. **It does not submit applications.**
 
 ## Architecture
