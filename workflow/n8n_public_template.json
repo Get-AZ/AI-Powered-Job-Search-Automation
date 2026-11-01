@@ -1,0 +1,984 @@
+{
+  "name": "AI-Powered Job Search Automation (Public Template)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -1152,
+        -80
+      ],
+      "id": "ada06e70-2fa0-42c3-9889-9c2d4a0039de",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "url": "https://remotive.com/api/remote-jobs?category=data&limit=100",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -928,
+        -80
+      ],
+      "id": "d467d9f7-5402-4151-a5fd-d028b2e15167",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "language": "pythonNative",
+        "pythonCode": "\n# Read the HTTP Request response\nresponse = _items[0][\"json\"]\n\n# Extract job listings\njobs = response.get(\"jobs\", [])\n\nresults = []\n\nfor job in jobs:\n    results.append({\n        \"json\": {\n            \"title\": job.get(\"title\"),\n            \"company\": job.get(\"company_name\"),\n            \"location\": job.get(\"candidate_required_location\"),\n            \"job_type\": job.get(\"job_type\"),\n            \"salary\": job.get(\"salary\"),\n            \"publication_date\": job.get(\"publication_date\"),\n            \"url\": job.get(\"url\"),\n            \"description\": (job.get(\"description\") or \"\")[:5000],\n            \"source\": \"Remotive\"\n        }\n    })\n\nreturn results\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -704,
+        -80
+      ],
+      "id": "8edfa54f-a605-4bac-8f51-04e981547cfc",
+      "name": "Code in Python"
+    },
+    {
+      "parameters": {
+        "language": "pythonNative",
+        "pythonCode": "\n# Inspect the jobs received from the previous node\nresults = []\n\nfor item in _items:\n    job = item[\"json\"]\n\n    results.append({\n        \"json\": {\n            \"title\": job.get(\"title\", \"\"),\n            \"company\": job.get(\"company\", \"\"),\n            \"location\": job.get(\"location\", \"\")\n        }\n    })\n\nreturn results\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        -80
+      ],
+      "id": "4ba21426-682b-459c-a9d0-bd67dbe48a70",
+      "name": "Code in Python1"
+    },
+    {
+      "parameters": {
+        "url": "https://www.arbeitnow.com/api/job-board-api",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -1168,
+        176
+      ],
+      "id": "d298a8b5-0334-447e-8132-e2a56a1827bc",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "language": "pythonNative",
+        "pythonCode": "\nresponse = _items[0][\"json\"]\njobs = response.get(\"data\", [])\n\nresults = []\n\nfor job in jobs:\n    results.append({\n        \"json\": {\n            \"title\": job.get(\"title\"),\n            \"company\": job.get(\"company_name\"),\n            \"location\": job.get(\"location\"),\n            \"remote\": job.get(\"remote\"),\n            \"url\": job.get(\"url\"),\n            \"description\": (job.get(\"description\") or \"\")[:5000],\n            \"source\": \"Arbeitnow\"\n        }\n    })\n\nreturn results\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -944,
+        176
+      ],
+      "id": "b35d5adb-2d86-4a52-bab2-6b188636bd76",
+      "name": "Code in Python2"
+    },
+    {
+      "parameters": {
+        "language": "pythonNative",
+        "pythonCode": "\nkeywords = [\n    \"data scientist\",\n    \"data analyst\",\n    \"data engineer\",\n    \"machine learning\",\n    \"ml engineer\",\n    \"mlops\",\n    \"ai engineer\",\n    \"ai solution architect\",\n    \"artificial intelligence\",\n    \"cloud engineer\",\n    \"azure\",\n    \"network engineer\",\n    \"database administrator\"\n]\n\nresults = []\n\nfor item in _items:\n    job = item[\"json\"]\n    title = (job.get(\"title\") or \"\").lower()\n\n    if any(keyword in title for keyword in keywords):\n        results.append({\"json\": job})\n\nreturn results\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        176
+      ],
+      "id": "b1e1140d-2b3b-4b71-bb51-49d08a991c80",
+      "name": "Code in Python3"
+    },
+    {
+      "parameters": {
+        "language": "pythonNative",
+        "pythonCode": "\nus_locations = [\n    \"united states\",\n    \"usa\",\n    \"u.s.\",\n    \"california\",\n    \"los angeles\",\n    \"remote - us\",\n    \"remote us\",\n    \"us remote\",\n    \"anywhere in the us\"\n]\n\nresults = []\n\nfor item in _items:\n    job = item[\"json\"]\n    location = (job.get(\"location\") or \"\").lower()\n\n    if any(place in location for place in us_locations):\n        results.append({\"json\": job})\n\nreturn results\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -336,
+        160
+      ],
+      "id": "d233c11e-4df3-42d4-8e5b-20ad122ecfec",
+      "name": "Code in Python4"
+    },
+    {
+      "parameters": {
+        "url": "https://remoteok.com/api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "\tUser-Agent",
+              "value": "Mozilla/5.0"
+            },
+            {
+              "name": "Accept",
+              "value": "application/json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -1184,
+        464
+      ],
+      "id": "010f332d-8e82-4749-9631-981d90e55278",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "language": "pythonNative",
+        "pythonCode": "\nkeywords = [\n    \"data scientist\",\n    \"data analyst\",\n    \"data engineer\",\n    \"machine learning\",\n    \"ml engineer\",\n    \"mlops\",\n    \"ai engineer\",\n    \"ai architect\",\n    \"artificial intelligence\",\n    \"cloud engineer\",\n    \"azure\",\n    \"network engineer\",\n    \"database administrator\",\n    \"computer science instructor\"\n]\n\nresults = []\n\nfor item in _items:\n    job = item[\"json\"]\n    title = (job.get(\"position\") or \"\").lower()\n\n    if any(keyword in title for keyword in keywords):\n        results.append({\n            \"json\": {\n                \"title\": job.get(\"position\"),\n                \"company\": job.get(\"company\"),\n                \"location\": job.get(\"location\"),\n                \"url\": job.get(\"apply_url\") or job.get(\"url\"),\n                \"description\": (job.get(\"description\") or \"\")[:5000],\n                \"source\": \"Remote OK\"\n            }\n        })\n\nreturn results\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -960,
+        464
+      ],
+      "id": "efe4ca42-ce70-49d9-8e24-25ce85484243",
+      "name": "Code in Python5"
+    },
+    {
+      "parameters": {
+        "language": "pythonNative",
+        "pythonCode": "\nresults = []\n\nfor item in _items:\n    job = item[\"json\"]\n    location = (job.get(\"location\") or \"\").strip()\n    loc = location.lower()\n\n    us_terms = [\n        \"united states\",\n        \"usa\",\n        \"u.s.\",\n        \"california\",\n        \"los angeles\",\n        \"remote us\",\n        \"us remote\",\n        \"remote usa\"\n    ]\n\n    if any(term in loc for term in us_terms):\n        status = \"US location indicated\"\n    elif location == \"\":\n        status = \"Location unknown - verify US eligibility\"\n    else:\n        status = \"Non-US location - verify remote eligibility\"\n\n    job[\"location_status\"] = status\n\n    results.append({\"json\": job})\n\nreturn results\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -720,
+        464
+      ],
+      "id": "b03f43a0-454e-4944-b20e-5cd35524759f",
+      "name": "Code in Python6"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Evaluate the following job against the candidate profile provided by the workflow owner.\nCANDIDATE PROFILE: [INSERT VERIFIED NON-SENSITIVE RESUME SUMMARY]\nJOB TITLE: {{ $json.title }}\nCOMPANY: {{ $json.company }}\nLOCATION: {{ $json.location }}\nDESCRIPTION: {{ $json.description }}\nReturn JSON only with match_score, matching_skills, missing_or_unverified_skills, location_eligibility, recommendation, reason. Do not assume work authorization."
+            }
+          ]
+        },
+        "jsonOutput": true,
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        -352,
+        448
+      ],
+      "id": "a938a8fa-b3a6-4754-b213-b957f768d555",
+      "name": "Message a model"
+    },
+    {
+      "parameters": {
+        "language": "pythonNative",
+        "pythonCode": "\nresults = []\n\nfor item in _items:\n    response = item[\"json\"]\n\n    parts = response.get(\"content\", {}).get(\"parts\", [])\n\n    if len(parts) == 0:\n        continue\n\n    text = parts[0].get(\"text\", \"\")\n\n    results.append({\n        \"json\": {\n            \"gemini_response\": text,\n            \"status\": \"Gemini evaluation received\"\n        }\n    })\n\nreturn results\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        448
+      ],
+      "id": "5716247b-e03d-4297-80fa-c6ba28f03771",
+      "name": "Code in Python7"
+    },
+    {
+      "parameters": {
+        "language": "pythonNative",
+        "pythonCode": "\nresults = []\n\nfor item in _items:\n    job = item[\"json\"]\n    raw = job.get(\"gemini_response\") or \"\"\n\n    # Python Legacy does not allow standard-library imports.\n    # Extract values from Gemini's JSON-formatted response.\n\n    def get_text(key):\n        marker = '\"' + key + '\":'\n        if marker not in raw:\n            return \"\"\n\n        part = raw.split(marker, 1)[1].strip()\n\n        if not part.startswith('\"'):\n            return \"\"\n\n        part = part[1:]\n        output = \"\"\n        escaped = False\n\n        for ch in part:\n            if escaped:\n                output += ch\n                escaped = False\n            elif ch == \"\\\\\":\n                escaped = True\n            elif ch == '\"':\n                break\n            else:\n                output += ch\n\n        return output\n\n    # Match score\n    score = None\n    marker = '\"match_score\":'\n\n    if marker in raw:\n        part = raw.split(marker, 1)[1]\n        number = part.split(\",\", 1)[0].strip()\n\n        try:\n            score = int(number)\n        except:\n            pass\n\n    # Location eligibility can be a string or object\n    eligibility = get_text(\"location_eligibility\")\n\n    if not eligibility:\n        status = get_text(\"status\")\n        details = get_text(\"details\")\n\n        if status or details:\n            eligibility = status + \": \" + details\n\n    if not eligibility:\n        eligibility = \"Unknown - verify eligibility\"\n\n    results.append({\n        \"json\": {\n            \"title\": job.get(\"title\"),\n            \"company\": job.get(\"company\"),\n            \"location\": job.get(\"location\"),\n            \"application_url\": job.get(\"url\"),\n            \"description\": job.get(\"description\", \"\"),\n            \"match_score\": score,\n            \"recommendation\": get_text(\"recommendation\"),\n            \"location_eligibility\": eligibility,\n            \"reason\": get_text(\"reason\"),\n            \"source\": job.get(\"source\")\n        }\n    })\n\nreturn results\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        752
+      ],
+      "id": "2b1d70c6-b131-4ca6-9409-1f307f5966f5",
+      "name": "Code in Python8"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -288,
+        752
+      ],
+      "id": "9adc8215-0fd9-4a18-b263-e1a94844cd45",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "language": "pythonNative",
+        "pythonCode": "\n# Rank jobs by CV-based match score\n\njobs = []\n\nfor item in _items:\n    jobs.append(item[\"json\"])\n\njobs.sort(\n    key=lambda job: (\n        job.get(\"match_score\")\n        if isinstance(job.get(\"match_score\"), (int, float))\n        else -1\n    ),\n    reverse=True\n)\n\nresults = []\n\nfor index, job in enumerate(jobs):\n    ranked_job = dict(job)\n    ranked_job[\"rank\"] = index + 1\n\n    results.append({\n        \"json\": ranked_job\n    })\n\nreturn results\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        256,
+        768
+      ],
+      "id": "9acb2d78-988c-4200-896f-efc29305a84a",
+      "name": "Code in Python9"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "14f2762a-9f49-4b56-9b2c-f0dd397758b3",
+              "leftValue": "={{ $json.match_score }}",
+              "rightValue": 70,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.4,
+      "position": [
+        480,
+        768
+      ],
+      "id": "2816979f-d663-4ed6-898f-bf707862f42b",
+      "name": "Filter"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Write a 250–350 word cover-letter DRAFT for {{ $json.title }} at {{ $json.company }}. Job description: {{ $json.description }}. Candidate background: [INSERT VERIFIED NON-SENSITIVE PROFILE]. Do not invent skills, jobs, authorization or completed application steps. Return only the draft."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        704,
+        768
+      ],
+      "id": "116e4662-a2bd-4991-8ab9-e415f25e5cab",
+      "name": "Message a model1"
+    },
+    {
+      "parameters": {
+        "language": "pythonNative",
+        "pythonCode": "\nresults = []\n\nfor item in _items:\n    data = item[\"json\"]\n\n    content = data.get(\"content\") or {}\n    parts = content.get(\"parts\") or []\n\n    letter = \"\"\n\n    for part in parts:\n        if isinstance(part, dict):\n            letter += part.get(\"text\", \"\")\n\n    results.append({\n        \"json\": {\n            \"cover_letter\": letter.strip(),\n            \"status\": \"Draft - requires review\"\n        }\n    })\n\nreturn results\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1072,
+        768
+      ],
+      "id": "e3041cd4-d175-4519-9e6d-cb013d881cc0",
+      "name": "Code in Python10"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        800,
+        1120
+      ],
+      "id": "d7aad998-eb1f-46ad-b652-6ed2149825e5",
+      "name": "Merge1"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "models/gemini-3-flash-preview"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Review the following cover letter for factual accuracy, unsupported claims, and professionalism. Company: {{ $json.company }}. Position: {{ $json.title }}. Draft: {{ $json.cover_letter }}. Verified candidate profile: [INSERT VERIFIED NON-SENSITIVE PROFILE]. Do not claim application submission, authorization, or completed video. Return corrected draft only."
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.2,
+      "position": [
+        1024,
+        1120
+      ],
+      "id": "ba7df31d-0b6d-48c5-8138-58ad53bae7a9",
+      "name": "Message a model2"
+    },
+    {
+      "parameters": {
+        "language": "pythonNative",
+        "pythonCode": "\nresults = []\n\nfor item in _items:\n    data = item[\"json\"]\n    content = data.get(\"content\") or {}\n    parts = content.get(\"parts\") or []\n\n    letter = \"\"\n\n    for part in parts:\n        if isinstance(part, dict):\n            letter += part.get(\"text\", \"\")\n\n    results.append({\n        \"json\": {\n            \"corrected_cover_letter\": letter.strip(),\n            \"review_status\": \"Draft - requires final verification\"\n        }\n    })\n\nreturn results\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1392,
+        1120
+      ],
+      "id": "2df536bb-92ab-4b41-bc3d-568075e7cf1e",
+      "name": "Code in Python11"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1344,
+        1536
+      ],
+      "id": "594b0c10-a4fb-4f1c-a0c0-c556f655d61e",
+      "name": "Merge2"
+    },
+    {
+      "parameters": {
+        "language": "pythonNative",
+        "pythonCode": "\nresults = []\n\nfor item in _items:\n    job = item[\"json\"]\n\n    company = job.get(\"company\", \"\")\n    letter = job.get(\"corrected_cover_letter\", \"\")\n\n    if company == \"Benzinga\":\n        letter = letter.replace(\n            \"Navigating the trade-offs between model accuracy and inference latency for API delivery was a **CHARMINGLY** complex challenge. By focusing on efficient model packaging and monitoring, I worked to ensure the system remained performant under varying conditions.\",\n            \"My DistilBERT sentiment analysis project gave me practical experience developing and evaluating NLP models. This work, together with my Azure ML deployment experience, has strengthened my understanding of model development and deployment considerations. I would welcome the opportunity to discuss these projects in more detail.\"\n        )\n\n    if company == \"AlgaeCal\":\n        letter = letter.replace(\n            \"This ensures that the models I develop are robust, monitored, and structured for real-world application.\",\n            \"This experience has strengthened my understanding of model deployment, validation, and monitoring.\"\n        )\n\n    results.append({\n        \"json\": {\n            \"rank\": job.get(\"rank\"),\n            \"company\": company,\n            \"title\": job.get(\"title\"),\n            \"location\": job.get(\"location\"),\n            \"match_score\": job.get(\"match_score\"),\n            \"recommendation\": job.get(\"recommendation\"),\n            \"application_url\": job.get(\"application_url\"),\n            \"location_eligibility\": \"Unverified - confirm employer hiring restrictions\",\n            \"final_cover_letter\": letter,\n            \"application_status\": \"Draft - not submitted\",\n            \"review_required\": True,\n            \"source\": job.get(\"source\")\n        }\n    })\n\nreturn results\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1568,
+        1536
+      ],
+      "id": "edc9bfb3-6d6b-49ad-8173-23e0c5121965",
+      "name": "Code in Python12"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_SPREADSHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_SHEET_ID",
+          "mode": "id"
+        },
+        "filtersUI": {
+          "values": []
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2192,
+        1536
+      ],
+      "id": "a4471809-b8b4-4b1e-b577-92a76de6d773",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "c18f0740-1a46-4641-82b8-62821ae6e535",
+              "leftValue": "={{ $json[\"Application URL\"] }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        2416,
+        1536
+      ],
+      "id": "98bd55fe-32a5-4b69-ba64-127294a7f48f",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_SPREADSHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "REPLACE_WITH_YOUR_SHEET_ID",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Rank": "={{ $json.rank }}",
+            "Company": "={{ $json.company }}",
+            "Job Title": "={{ $json.title }}",
+            "Location": "={{ $json.location || \"Not specified - verify remote eligibility\" }}",
+            "Match Score": "={{ $json.match_score }}",
+            "Recommendation": "={{ $json.recommendation }}",
+            "Location Eligibility": "={{ $json.location_eligibility }}",
+            "Cover Letter": "={{ $json.final_cover_letter }}",
+            "Application Status": "={{ $json.application_status }}",
+            "Review Required": "={{ $json.review_required }}",
+            "Source": "={{ $json.source }}",
+            "Application URL": "={{ $json.application_url }}"
+          },
+          "matchingColumns": [
+            "Application URL"
+          ],
+          "schema": [
+            {
+              "id": "Rank",
+              "displayName": "Rank",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Job Title",
+              "displayName": "Job Title",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Location",
+              "displayName": "Location",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Match Score",
+              "displayName": "Match Score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Recommendation",
+              "displayName": "Recommendation",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Application URL",
+              "displayName": "Application URL",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Location Eligibility",
+              "displayName": "Location Eligibility",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Cover Letter",
+              "displayName": "Cover Letter",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Application Status",
+              "displayName": "Application Status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Review Required",
+              "displayName": "Review Required",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Source",
+              "displayName": "Source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2448,
+        1216
+      ],
+      "id": "5531a725-b3f5-405a-84fd-9fe7d8fc3e16",
+      "name": "Append row in sheet"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1840,
+        1216
+      ],
+      "id": "06d21734-2957-4d7a-aaa1-2ae5fa5524c5",
+      "name": "Merge3"
+    },
+    {
+      "parameters": {
+        "language": "pythonNative",
+        "pythonCode": "\n# Collect existing application URLs from Google Sheets\nexisting_urls = set()\nnew_jobs = []\nseen_new_urls = set()\n\nfor item in _items:\n    record = item[\"json\"]\n    url = str(record.get(\"Application URL\", \"\") or \"\").strip().lower()\n\n    if url:\n        existing_urls.add(url.rstrip(\"/\"))\n\n# Keep only original jobs not already in Google Sheets\nfor item in _items:\n    record = item[\"json\"]\n    url = str(record.get(\"application_url\", \"\") or \"\").strip().lower().rstrip(\"/\")\n\n    if url and url not in existing_urls and url not in seen_new_urls:\n        new_jobs.append({\"json\": record})\n        seen_new_urls.add(url)\n\nreturn new_jobs\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2112,
+        1216
+      ],
+      "id": "7555ac56-6607-4222-b11e-71bef7aafea6",
+      "name": "Filter New Jobs."
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Code in Python",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python": {
+      "main": [
+        [
+          {
+            "node": "Code in Python1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Code in Python2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python2": {
+      "main": [
+        [
+          {
+            "node": "Code in Python3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python3": {
+      "main": [
+        [
+          {
+            "node": "Code in Python4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Code in Python5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python5": {
+      "main": [
+        [
+          {
+            "node": "Code in Python6",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python6": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in Python7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python7": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in Python8",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python8": {
+      "main": [
+        [
+          {
+            "node": "Code in Python9",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python9": {
+      "main": [
+        [
+          {
+            "node": "Filter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter": {
+      "main": [
+        [
+          {
+            "node": "Message a model1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Message a model1": {
+      "main": [
+        [
+          {
+            "node": "Code in Python10",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python10": {
+      "main": [
+        [
+          {
+            "node": "Merge1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge1": {
+      "main": [
+        [
+          {
+            "node": "Message a model2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Message a model2": {
+      "main": [
+        [
+          {
+            "node": "Code in Python11",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python11": {
+      "main": [
+        [
+          {
+            "node": "Merge2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge2": {
+      "main": [
+        [
+          {
+            "node": "Code in Python12",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in Python12": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge3",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        []
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        []
+      ]
+    },
+    "Merge3": {
+      "main": [
+        [
+          {
+            "node": "Filter New Jobs.",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter New Jobs.": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "nodeGroups": [],
+  "tags": []
+}
